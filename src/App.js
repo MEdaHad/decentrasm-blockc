@@ -21,8 +21,42 @@ function App() {
     setAccount(accounts[0]);
   }
   async function getRecommendedProfiles(){
-    const response = await urlClient.query(queryRecommendedProfiles).toPromise();
+    const response = await urlClient
+    .query(queryRecommendedProfiles)
+    .toPromise();
+    const profiles = response.data.getRecommendedProfiles.slice(0,5);
+    setProfiles(profiles);
   }
+
+  async function getPosts(){
+    const response = await urlClient.
+    query(queryExplorerPublications).
+    toPromise();
+
+    const posts = response.data.explorepublications.items.filter((post)=>{
+      if (post.profile) return post;
+      return ""
+    });
+    setPosts(posts);
+  }
+
+  async function follow(id){
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const contract = new ethers.Contract(
+      LENS_HUB_CONTRACT_ADDRESS,
+      LENSHUB,
+      provider.getSigner()
+    );
+    const tx = await contract.follow([parseInt(id)], [0x0]);
+    await tx.wait();
+
+  }
+
+  useEffect(() => {
+    getRecommendedProfiles();
+    getPosts();
+  }, []);
+
 
   return <div className="app"></div>;
 }
